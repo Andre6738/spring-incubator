@@ -22,7 +22,7 @@
         <rollingPolicy
                 class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- rollover daily and when the file reaches 10 MegaBytes -->
-            <fileNamePattern>${LOGS}/archived/customer-service-%d{yyyy-MM-dd}.%i.log
+            <fileNamePattern>${LOGS}/archived/booking-service-%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy
                     class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
@@ -37,8 +37,8 @@
         <appender-ref ref="Console" />
     </root>
 
-    <!-- LOG "entelect.training.incubator.spring.customer.controller" at TRACE level to console only -->
-    <logger name="entelect.training.incubator.spring.customer.controller" level="trace" additivity="false">
+    <!-- LOG "entelect.training.incubator.spring.booking.controller" at TRACE level to console only -->
+    <logger name="entelect.training.incubator.spring.booking.controller" level="trace" additivity="false">
         <appender-ref ref="Console" />
     </logger>
 

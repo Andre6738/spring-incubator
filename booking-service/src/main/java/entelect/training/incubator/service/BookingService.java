@@ -1,50 +1,42 @@
-package entelect.training.incubator.spring.customer.service;
+package entelect.training.incubator.service;
 
-import entelect.training.incubator.spring.customer.model.Customer;
-import entelect.training.incubator.spring.customer.model.CustomerSearchRequest;
-import entelect.training.incubator.spring.customer.model.SearchType;
-import entelect.training.incubator.spring.customer.repository.CustomerRepository;
+import entelect.training.incubator.model.Booking;
+import entelect.training.incubator.repository.BookingRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
-public class CustomersService {
+public class BookingService {
+    private final BookingRepository bookingRepository;
 
-    private final CustomerRepository customerRepository;
-
-    public CustomersService(CustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
+    public BookingService(BookingRepository bookingRepository) {
+        this.bookingRepository = bookingRepository;
     }
 
-    public Customer createCustomer(Customer customer) {
-        return customerRepository.save(customer);
+    public Booking createBooking(Booking booking) {
+        if (booking == null) {
+            throw new IllegalArgumentException("Booking cannot be null");
+        }
+        return bookingRepository.save(booking);
     }
 
-    public List<Customer> getCustomers() {
-        Iterable<Customer> customerIterable = customerRepository.findAll();
-
-        List<Customer> result = new ArrayList<>();
-        customerIterable.forEach(result::add);
-
-        return result;
+    public Booking getBooking(Integer id) {
+        try {
+            Optional<Booking> bookingOptional = bookingRepository.findById(id);
+            return bookingOptional.orElseThrow(NoSuchElementException::new);
+        } catch (NoSuchElementException e) {
+            throw new IllegalArgumentException("Invalid booking ID: " + id, e);
+        }
     }
 
-    public Customer getCustomer(Integer id) {
-        Optional<Customer> customerOptional = customerRepository.findById(id);
-        return customerOptional.orElse(null);
+    public List<Booking> findByReferenceNumber(String referenceNumber) {
+        return bookingRepository.findByReferenceNumber(referenceNumber);
     }
 
-    public Customer searchCustomers(CustomerSearchRequest searchRequest) {
-        Map<SearchType, Supplier<Optional<Customer>>> searchStrategies = new HashMap<>();
-
-        searchStrategies.put(SearchType.NAME_SEARCH, () -> customerRepository.findByFirstNameAndLastName(searchRequest.getFirstName(), searchRequest.getLastName()));
-        searchStrategies.put(SearchType.PASSPORT_SEARCH, () -> customerRepository.findByPassportNumber(searchRequest.getPassport()));
-        searchStrategies.put(SearchType.USER_SEARCH, () -> customerRepository.findByUsername(searchRequest.getUsername()));
-
-        Optional<Customer> customerOptional = searchStrategies.get(searchRequest.getSearchType()).get();
-
-        return customerOptional.orElse(null);
+    public List<Booking> findByCustomerId(Integer customerId) {
+        return bookingRepository.findByCustomerId(customerId);
     }
 }

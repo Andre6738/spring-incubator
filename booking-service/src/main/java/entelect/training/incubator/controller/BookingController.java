@@ -1,9 +1,7 @@
-package entelect.training.incubator.spring.customer.controller;
+package entelect.training.incubator.controller;
 
-import entelect.training.incubator.spring.customer.model.Customer;
-import entelect.training.incubator.spring.customer.model.CustomerSearchRequest;
-import entelect.training.incubator.spring.customer.model.SearchType;
-import entelect.training.incubator.spring.customer.service.CustomersService;
+import entelect.training.incubator.model.Booking;
+import entelect.training.incubator.service.BookingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -11,68 +9,66 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("customers")
-public class CustomersController {
+@RequestMapping("bookings")
+public class BookingController {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(CustomersController.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(BookingController.class);
 
-    private final CustomersService customersService;
+    private final BookingService bookingService;
 
-    public CustomersController(CustomersService customersService) {
-        this.customersService = customersService;
+    public BookingController(BookingService bookingService) {
+        this.bookingService = bookingService;
     }
 
     @PostMapping
-    public ResponseEntity<?> createCustomer(@RequestBody Customer customer) {
-        LOGGER.info("Processing customer creation request for customer={}", customer);
+    public ResponseEntity<?> createBooking(@RequestBody Booking booking) {
+        LOGGER.info("Processing customer creation request for booking={}", booking);
 
-        final Customer savedCustomer = customersService.createCustomer(customer);
+        final Booking savedBooking = bookingService.createBooking(booking);
 
         LOGGER.trace("Customer created");
-        return new ResponseEntity<>(savedCustomer, HttpStatus.CREATED);
-    }
-
-    @GetMapping
-    public ResponseEntity<?> getCustomers() {
-        LOGGER.info("Fetching all customers");
-        List<Customer> customers = customersService.getCustomers();
-
-        if (!customers.isEmpty()) {
-            LOGGER.trace("Found customers");
-            return new ResponseEntity<>(customers, HttpStatus.OK);
-        }
-
-        LOGGER.info("No customers could be found");
-        return ResponseEntity.notFound().build();
+        return new ResponseEntity<>(savedBooking, HttpStatus.CREATED);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<?> getCustomerById(@PathVariable Integer id) {
-        LOGGER.info("Processing customer search request for customer id={}", id);
-        Customer customer = this.customersService.getCustomer(id);
+    public ResponseEntity<?> getBooking(@PathVariable Integer id) {
+        LOGGER.info("Processing booking search request for booking id={}", id);
+        Booking booking = this.bookingService.getBooking(id);
 
-        if (customer != null) {
-            LOGGER.trace("Found customer");
-            return new ResponseEntity<>(customer, HttpStatus.OK);
+        if (booking != null) {
+            LOGGER.trace("Found booking");
+            return new ResponseEntity<>(booking, HttpStatus.OK);
         }
 
-        LOGGER.trace("Customer not found");
+        LOGGER.trace("Booking not found");
         return ResponseEntity.notFound().build();
     }
 
     @PostMapping("/search")
-    public ResponseEntity<?> searchCustomers(@RequestBody CustomerSearchRequest searchRequest) {
-        LOGGER.info("Processing customer search request for request {}", searchRequest);
+    public ResponseEntity<?> search(@RequestBody Map<String, Object> searchRequest) {
+        LOGGER.info("Processing search request for request {}", searchRequest);
 
-        Customer customer = customersService.searchCustomers(searchRequest);
-
-        if (customer != null) {
-            return ResponseEntity.ok(customer);
+        List<Booking> bookings;
+        Integer customerId = (Integer) searchRequest.get("customerId");
+        if (customerId != null) {
+            bookings = bookingService.findByCustomerId(customerId);
+        } else {
+            String referenceNumber = (String) searchRequest.get("referenceNumber");
+            if (referenceNumber != null) {
+                bookings = bookingService.findByReferenceNumber(referenceNumber);
+            } else {
+                return ResponseEntity.badRequest().body("Invalid search request");
+            }
         }
 
-        LOGGER.trace("Customer not found");
+        if (!bookings.isEmpty()) {
+            return ResponseEntity.ok(bookings);
+        }
+
+        LOGGER.trace("Bookings not found");
         return ResponseEntity.notFound().build();
     }
 }
